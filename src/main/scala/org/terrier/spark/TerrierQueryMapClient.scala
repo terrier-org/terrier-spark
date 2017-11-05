@@ -12,9 +12,12 @@ import java.io.IOException
 import java.io.ObjectOutputStream
 import java.io.ObjectInputStream
 import java.io.Serializable
+import org.apache.hadoop.mapred.IndexCache
 
 object TerrierQueryMapClient {
   val managerCache = scala.collection.mutable.Map[Properties,Manager]();
+  val indexCache = scala.collection.mutable.Map[(String,String),Index]();
+  
 }
 
 class TerrierQueryMapClient(props : Map[String,String]) extends ( ((String,String)) => (String,ResultSet)) with Serializable {
@@ -34,7 +37,16 @@ class TerrierQueryMapClient(props : Map[String,String]) extends ( ((String,Strin
   {
     ApplicationSetup.clearAllProperties();
     ApplicationSetup.bootstrapInitialisation(props)
-    val index : Index = Index.createIndex()
+    val indexLocation = (ApplicationSetup.TERRIER_INDEX_PATH,ApplicationSetup.TERRIER_INDEX_PREFIX)
+    
+    val index : Index = 
+      if (TerrierQueryMapClient.indexCache.contains(indexLocation))
+           TerrierQueryMapClient.indexCache.get(indexLocation).get
+      else
+      {
+        System.err.println("Loading index")
+        Index.createIndex()
+      }
     if (index == null)
       throw new IllegalArgumentException("Index not found: " + Index.getLastIndexLoadError)
     val m : Manager = new Manager(index)
@@ -54,6 +66,12 @@ class TerrierQueryMapClient(props : Map[String,String]) extends ( ((String,Strin
     val qid = input._1
     val query = input._2
     val srq = manager.newSearchRequest(qid, query)
+    //c is a special case, as its defined by a control, not a property.
+    if (props.contains("c"))
+    {
+        srq.setControl("c", props.get("c").get)
+        srq.setControl("c_set", "true")
+    }
     srq.addMatchingModel(
         ApplicationSetup.getProperty("trec.matching", matching), 
         ApplicationSetup.getProperty("trec.model", wmodel)) 
