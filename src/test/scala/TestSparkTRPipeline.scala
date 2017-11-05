@@ -40,7 +40,6 @@ class TestSparkTRPipeline extends FlatSpec {
     import spark.implicits._
     
     val props = Map(
-            "proximity.dependency.type" -> "SD",
             "terrier.home" -> "/Users/craigm/git/Terrier",
             "terrier.etc" -> "/Users/craigm/git/Terrier/etc",
             "terrier.index.path" -> "/Users/craigm/wt2g_index/index/")
@@ -52,6 +51,8 @@ class TestSparkTRPipeline extends FlatSpec {
     val queryTransform = new QueryingTransformer()
       .setTerrierProperties(props)
       .setSampleModel("BM25")
+      
+    val propertyName = "c"
     
     val qrelTransform = new QrelTransformer()
         .setQrelsFile("/Users/craigm/wt2g_index/topicsqrels/small_web/qrels.trec8")
@@ -61,15 +62,15 @@ class TestSparkTRPipeline extends FlatSpec {
     
      val paramGrid = new ParamGridBuilder()
       .addGrid(queryTransform.localTerrierProperties, Array(
-          props + ("c" -> "0.1"), 
-          props + ("c" -> "0.2"), 
-          props + ("c" -> "0.3"), 
-          props + ("c" -> "0.4"), 
-          props + ("c" -> "0.5"), 
-          props + ("c" -> "0.6"), 
-          props + ("c" -> "0.7"), 
-          props + ("c" -> "0.8"), 
-          props + ("c" -> "0.9")))
+          props + (propertyName -> "0.1"), 
+          props + (propertyName -> "0.2"), 
+          props + (propertyName -> "0.3"), 
+          props + (propertyName -> "0.4"), 
+          props + (propertyName -> "0.5"), 
+          props + (propertyName -> "0.6"), 
+          props + (propertyName -> "0.7"), 
+          props + (propertyName -> "0.8"), 
+          props + (propertyName -> "0.9")))
       .build()
     val cv = new CrossValidator()
       .setEstimator(pipeline)
@@ -95,7 +96,6 @@ class TestSparkTRPipeline extends FlatSpec {
   "WT2G" should "work for numerical optimising C for BM25" in {
     import spark.implicits._
     val props = Map(
-            "proximity.dependency.type" -> "SD",
             "terrier.home" -> "/Users/craigm/git/Terrier",
             "terrier.etc" -> "/Users/craigm/git/Terrier/etc",
             "terrier.index.path" -> "/Users/craigm/wt2g_index/index/")
@@ -109,11 +109,56 @@ class TestSparkTRPipeline extends FlatSpec {
     tuner.setTerrierProperties(props)
     tuner.set(tuner.paramName, "c")
     tuner.setSampleModel("BM25")
-    tuner.set(tuner.paramValueInitial, 1d)
+    tuner.set(tuner.paramValueInitial, 0.25d)
+    tuner.set(tuner.paramValueMin, 0d)
+    tuner.set(tuner.paramValueMax, 1d)
+    tuner.set(tuner.measureTol, 1e-4)
+    tuner.set(tuner.optMaxIter, 100)
+    
     tuner.setQrelsFile("/Users/craigm/wt2g_index/topicsqrels/small_web/qrels.trec8")
     val model = tuner.fit(trTopics)
+    println(model.propertySettings.get("c").get)
+  }
+  
+  "WT2G" should "work for numerical optimising BM25F" in {
+    import spark.implicits._
+    val props = Map(
+            "terrier.home" -> "/Users/craigm/git/Terrier",
+            "terrier.etc" -> "/Users/craigm/git/Terrier/etc",
+            "terrier.index.path" -> "/Users/craigm/wt2g_index/index/")
     
-//    println model.
+    LTRPipeline.configureTerrier(props)
+    
+    val allTopicsList = LTRPipeline.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450").toList
+    val Array(trTopics, teTopics) = allTopicsList.toDF("qid", "query").randomSplit(Array(0.5,0.5), 130882)
+    
+    val fields = Seq(1,2,3)
+    val cParams = fields.map{f =>  
+      {
+        //what parameter are we optimising?
+        val param = "c."+f
+        //set the weight of this field to 1, all other fields to 0
+        val fieldsWeightParams = 
+           Map("w."+f -> "1") ++
+          fields.filter { fi => fi != f }.map(fi => ("w."+fi -> "0"))
+        
+        val tuner = new ArbitraryParameterTrainingEstimator()
+        tuner.setTerrierProperties(props ++ fieldsWeightParams)
+        tuner.set(tuner.paramName, param)
+        tuner.setSampleModel("BM25F")
+        tuner.set(tuner.paramValueInitial, 0.25d)
+        tuner.set(tuner.paramValueMax, 1d)
+        tuner.set(tuner.paramValueMin, 0d)
+        tuner.set(tuner.measureTol, 1e-4)
+        tuner.set(tuner.optMaxIter, 100)
+        tuner.setQrelsFile("/Users/craigm/wt2g_index/topicsqrels/small_web/qrels.trec8")
+        val model = tuner.fit(trTopics)
+        (f,model.propertySettings.get(param).get)
+      }
+    }
+    
+    println(cParams)
+    
   }
   
    "WT2G" should "work for LTR retrieval" in {
