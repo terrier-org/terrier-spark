@@ -17,7 +17,7 @@ class NDCGEvalutor(cutoff : Int) extends Evaluator
     def evaluate(dataset: Dataset[_]): Double = {
       import dataset.sqlContext.implicits._
       import org.apache.spark.sql.functions._
-      val xdd = dataset.orderBy(asc("qid"), desc("score")).
+      val xdd = dataset.coalesce(1).orderBy(asc("qid"), desc("score")).
         select("qid", "rank", "score", "label").map{
           case Row(qid: String, rank: Int, score: Double, label : Int) =>
           (qid,rank,score,label)
