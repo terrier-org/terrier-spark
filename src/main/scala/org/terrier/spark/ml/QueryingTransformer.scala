@@ -118,14 +118,16 @@ trait QueryingPipelineStage extends PipelineStage {
     if (terrier.isEmpty)
     {
       terrier = Some( new TerrierQueryMapClient(
-        get(localTerrierProperties).get ))
+        getTerrierProperties ))
     }
     val rtr = terrier.get
     rtr.wmodel = $(sampleModel)
     rtr
   }
   
-  
+  def getTerrierProperties() = {
+   get(localTerrierProperties).get 
+  }
   
   def setInputQueryCol(value: String): this.type = set(inputQueryCol, value)
   def setInputQueryNumCol(value: String): this.type = set(inputQueryNumCol, value)
