@@ -9,17 +9,22 @@ import org.apache.spark.ml.Estimator
 import com.github.bruneli.scalaopt.core._
 import derivativefree.NelderMead._
 import org.apache.spark.ml.param.Param
+import com.github.bruneli.scalaopt.core.derivativefree.NelderMeadConfig
 
 class PropertyModel(
   override val uid: String,
-  propertySettings: Map[String,Double])
+  val propertySettings: Map[String,Double])
   extends Model[PropertyModel]
   with QueryingPipelineStage
 {
-  set(localTerrierProperties, get(localTerrierProperties).get ++ propertySettings.map{ case (k : String, v : Double) => (k,v.toString)})
   override def copy(extra: ParamMap): PropertyModel = {
     defaultCopy(extra)
   }
+  
+  override def getTerrierProperties() = {
+    super.getTerrierProperties() ++ propertySettings.map{ case (k : String, v : Double) => (k,v.toString)}
+  }
+  
 }
   
 //TODO expand this to handle multiple parameters
@@ -31,6 +36,10 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
   final val paramValueInitial = new Param[Double](this, "paramValue", "The initial value of the parameter to opt")
   final val paramValueMax = new Param[Double](this, "paramValueMax", "The max value of the parameter to opt")
   final val paramValueMin = new Param[Double](this, "paramValueMin", "The max value of the parameter to opt")
+  final val measureTol = new Param[Double](this, "measureTol", "The error tolerance, default 1e-5")
+  final val optMaxIter = new Param[Int](this, "optMaxIter", "The maximum number of iterations, default 200")
+  setDefault(measureTol, 1e-5)
+  setDefault(optMaxIter, 200)
   
   def this() = this(Identifiable.randomUID("ArbitraryParameterTrainingEstimator"))
   
@@ -43,6 +52,8 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
     val addQrelStage = new QrelTransformer()
     addQrelStage.set(addQrelStage.qrelsFile, get(this.qrelsFile).get)
     val ndcgStage = new NDCGEvalutor(20)
+    val config = new NelderMeadConfig(tol = get(measureTol).get, maxIter = get(optMaxIter).get)
+    
     val objf = new ObjectiveFunction
     {
       def apply(x: Variables): Double = {
@@ -51,12 +62,12 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
         if (get(paramValueMax).isDefined && value > get(paramValueMax).get)
         {
             System.err.println("OOB "+ get(paramName).get + "=" + value)
-            -1 - (get(paramValueMax).get - value)
+            0 + (value - get(paramValueMax).get)
         }
         else if (get(paramValueMin).isDefined && value < get(paramValueMin).get)
         {
             System.err.println("OOB "+ get(paramName).get + "=" + value)
-            -1 - (value - get(paramValueMin).get)
+            0 + (get(paramValueMin).get - value)
         }
         else
         {
@@ -68,10 +79,12 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
         }
       }
     }
-    val tuned = minimize(objf, Vector(get(paramValueInitial).get))
+    val tuned = minimize(objf, Vector(get(paramValueInitial).get))(config)
     val bestParameter = tuned.get(0)
     System.err.println("Best parameter " + bestParameter) 
-    new PropertyModel("blabla", Map((get(paramName).get, bestParameter)))
+    val model = new PropertyModel("blabla", Map((get(paramName).get, bestParameter)))
+    model.setTerrierProperties(getTerrierProperties())
+    model
   }
   
 }
