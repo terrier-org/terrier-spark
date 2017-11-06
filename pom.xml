@@ -221,6 +221,7 @@
             </execution>
           </executions>
           <configuration>
+			<excludes><exclude>**/org/terrier/spark/ml/WSDWeighting.scala</exclude></excludes>
             <scalaVersion>${scala.version}</scalaVersion>
             <recompileMode>incremental</recompileMode>
             <useZincServer>true</useZincServer>
