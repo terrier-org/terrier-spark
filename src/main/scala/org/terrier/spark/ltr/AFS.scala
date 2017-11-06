@@ -8,6 +8,11 @@ import com.nr.min.Amebsa
 import org.netlib.util.intW
 import org.apache.commons.collections4.map.LRUMap
 import org.terrier.spark.eval.RankingMetrics2
+import com.github.bruneli.scalaopt.core._
+import derivativefree.NelderMead._
+
+import com.github.bruneli.scalaopt.core.ObjectiveFunction
+import com.github.bruneli.scalaopt.core.derivativefree.NelderMeadConfig
 
 object AFS {
   //makes the dotproduct of two vector
@@ -76,13 +81,13 @@ class AFS extends Serializable {
   //uses simulated annealing from Numerical Recipes in C to maximise the effectiveness
   def maximise_sa(input : Iterable[(String,Double,Double,Double)]) : (Double,Double) = {
     
-    class AFS_opt_funk extends RealValueFun
+    class AFS_opt_funk extends ObjectiveFunction
     {
       val min = 0d;
       val max = 1000d;
       //val oob_eval = 0d;
       val recent : LRUMap[Double,Double] = new LRUMap[Double,Double](1000)
-      def funk(x: Array[Double]) : Double = {
+      def apply(x: Variables) : Double = {
         val fWeight = x(0)
         //short circuit large weights
         if ((fWeight > max) || (fWeight < min)) {
@@ -110,26 +115,31 @@ class AFS extends Serializable {
     //how effective is the current model?
     val minimumNDCG = eval(input.map{ case ( qid, label, currentScore, feature ) => (qid, label, currentScore)})
     
-    //first parameter is starting solution
-    //second parameter is how big to explore
-    val amb1: Amebsa = new Amebsa(Array(0d), 0.0001d, new AFS_opt_funk(), 1.0e-4)
-    var temperature=10.0;
-    var iter : intW = new intW(0);
-    iter.`val` = 100;
-    var i = 0;
-    var test = false;
+    val func = new AFS_opt_funk()
+    val config = new NelderMeadConfig(tol = 1e04, maxIter = 100)
+    val tuned = minimize(func, Vector(0))(config)
     
-    //main annealing loop
-    while(i < 200 && ! test)
-    {
-      //println(s"Annealing iteration $i temp $temperature");
-      test = amb1.anneal(iter, temperature)
-      iter.`val` = 100;
-      temperature *= 0.8;
-      i=i+1
-    }
-    val bestWeight = amb1.pb(0)
-    val bestNDCG = -1d * amb1.yb
+//    //first parameter is starting solution
+//    //second parameter is how big to explore
+//    val amb1: Amebsa = new Amebsa(Array(0d), 0.0001d, new AFS_opt_funk(), 1.0e-4)
+//    var temperature=10.0;
+//    var iter : intW = new intW(0);
+//    iter.`val` = 100;
+//    var i = 0;
+//    var test = false;
+//    
+//    //main annealing loop
+//    while(i < 200 && ! test)
+//    {
+//      //println(s"Annealing iteration $i temp $temperature");
+//      test = amb1.anneal(iter, temperature)
+//      iter.`val` = 100;
+//      temperature *= 0.8;
+//      i=i+1
+//    }
+    
+    val bestWeight = tuned.get(0)
+    val bestNDCG = -1d * func.apply(Vector(bestWeight))
     if (bestNDCG > minimumNDCG)
     {  
       (bestWeight,bestNDCG)

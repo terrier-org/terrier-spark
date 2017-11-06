@@ -47,11 +47,6 @@
   </prerequisites>
   
   <dependencies>
-   <dependency>
-      <groupId>com.nr</groupId>
-      <artifactId>nr</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
     <dependency>
     <groupId>net.sourceforge.f2j</groupId>
     <artifactId>arpack_combined_all</artifactId>
