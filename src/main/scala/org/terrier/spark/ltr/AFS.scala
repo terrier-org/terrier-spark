@@ -3,13 +3,11 @@ package org.terrier.spark.ltr
 import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.linalg.{Vector, Vectors, SparseVector}
 import org.apache.spark.SparkContext
-import com.nr.RealValueFun
-import com.nr.min.Amebsa
-import org.netlib.util.intW
 import org.apache.commons.collections4.map.LRUMap
 import org.terrier.spark.eval.RankingMetrics2
 import com.github.bruneli.scalaopt.core._
 import derivativefree.NelderMead._
+import scala.language.postfixOps._
 
 import com.github.bruneli.scalaopt.core.ObjectiveFunction
 import com.github.bruneli.scalaopt.core.derivativefree.NelderMeadConfig
