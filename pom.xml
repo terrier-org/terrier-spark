@@ -47,11 +47,6 @@
   </prerequisites>
   
   <dependencies>
-    <dependency>
-    <groupId>net.sourceforge.f2j</groupId>
-    <artifactId>arpack_combined_all</artifactId>
-    <version>0.1</version>
-</dependency>
 
 <dependency>
 <groupId>com.github.jongwook</groupId>
