@@ -46,7 +46,9 @@ class TerrierQueryMapClient(props : Map[String,String]) extends ( ((String,Strin
       {
         System.err.println(Thread.currentThread().getContextClassLoader.toString());
         System.err.println("Loading index, indexCache had " + TerrierQueryMapClient.indexCache.size + " items" )
-        Index.createIndex()
+        val tmp = Index.createIndex()
+        TerrierQueryMapClient.indexCache.put(indexLocation, tmp)
+        tmp
       }
     if (index == null)
       throw new IllegalArgumentException("Index not found: " + Index.getLastIndexLoadError)
