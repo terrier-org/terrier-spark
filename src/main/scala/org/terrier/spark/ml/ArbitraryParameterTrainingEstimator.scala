@@ -29,7 +29,6 @@ class PropertyModel(
   
 }
   
-//TODO expand this to handle multiple parameters
 class ArbitraryParameterTrainingEstimator(override val uid: String)
   extends Estimator[PropertyModel]
   with QueryingPipelineStage with NeedQrels
@@ -50,6 +49,9 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
   }
   
   override def fit(dataset: Dataset[_]): PropertyModel = {
+    
+    require(get(paramName).get.length ==  get(paramValueInitial).get.length, "Must have correct number of parameters to optimise")
+    
     val addQrelStage = new QrelTransformer()
     addQrelStage.set(addQrelStage.qrelsFile, get(this.qrelsFile).get)
     val ndcgStage = new NDCGEvalutor(20)
