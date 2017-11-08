@@ -107,9 +107,9 @@ class TestSparkTRPipeline extends FlatSpec {
     
     val tuner = new ArbitraryParameterTrainingEstimator()
     tuner.setTerrierProperties(props)
-    tuner.set(tuner.paramName, "c")
+    tuner.set(tuner.paramName, Seq("c"))
     tuner.setSampleModel("BM25")
-    tuner.set(tuner.paramValueInitial, 0.25d)
+    tuner.set(tuner.paramValueInitial, Seq(0.25d))
     tuner.set(tuner.paramValueMin, 0d)
     tuner.set(tuner.paramValueMax, 1d)
     tuner.set(tuner.measureTol, 1e-4)
@@ -132,7 +132,7 @@ class TestSparkTRPipeline extends FlatSpec {
     val allTopicsList = LTRPipeline.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450").toList
     val Array(trTopics, teTopics) = allTopicsList.toDF("qid", "query").randomSplit(Array(0.5,0.5), 130882)
     
-    val fields = Seq(1,2,3)
+    val fields = Seq(0,1,2)
     val cParams = fields.map{f =>  
       {
         //what parameter are we optimising?
@@ -144,9 +144,9 @@ class TestSparkTRPipeline extends FlatSpec {
         
         val tuner = new ArbitraryParameterTrainingEstimator()
         tuner.setTerrierProperties(props ++ fieldsWeightParams)
-        tuner.set(tuner.paramName, param)
+        tuner.set(tuner.paramName, Seq(param))
         tuner.setSampleModel("BM25F")
-        tuner.set(tuner.paramValueInitial, 0.25d)
+        tuner.set(tuner.paramValueInitial, Seq(0.25d))
         tuner.set(tuner.paramValueMax, 1d)
         tuner.set(tuner.paramValueMin, 0d)
         tuner.set(tuner.measureTol, 1e-4)
