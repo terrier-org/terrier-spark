@@ -39,13 +39,32 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
   final val paramValueMin = new Param[Double](this, "paramValueMin", "The max value of the parameter to opt")
   final val measureTol = new Param[Double](this, "measureTol", "The error tolerance, default 1e-5")
   final val optMaxIter = new Param[Int](this, "optMaxIter", "The maximum number of iterations, default 200")
+  final val measureCutoff = new Param[Int](this, "measureCutoff", "The maximum number of results to evaluate, defaults to 20")
   setDefault(measureTol, 1e-5)
   setDefault(optMaxIter, 200)
+  setDefault(measureCutoff, 20)
   
   def this() = this(Identifiable.randomUID("ArbitraryParameterTrainingEstimator"))
   
   override def copy(extra: ParamMap): ArbitraryParameterTrainingEstimator = {
     defaultCopy(extra)
+  }
+  
+  def cache(parentfn : ObjectiveFunction) : ObjectiveFunction = {
+    new ObjectiveFunction
+    {
+      val cache = scala.collection.mutable.Map[Variables,Double]()
+      def apply(x: Variables): Double = {
+        cache.contains(x) match {
+          case true => cache.get(x).get
+          case false => {
+            val rtr = parentfn.apply(x)
+            cache.put(x, rtr)
+            rtr
+          }
+        }
+      }
+    }
   }
   
   override def fit(dataset: Dataset[_]): PropertyModel = {
@@ -54,7 +73,7 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
     
     val addQrelStage = new QrelTransformer()
     addQrelStage.set(addQrelStage.qrelsFile, get(this.qrelsFile).get)
-    val ndcgStage = new NDCGEvalutor(20)
+    val ndcgStage = new NDCGEvalutor(get(this.measureCutoff).get)
     val config = new NelderMeadConfig(tol = get(measureTol).get, maxIter = get(optMaxIter).get)
     
     val objf = new ObjectiveFunction
@@ -94,10 +113,11 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
         }
       }
     }
+    val finalFn = cache(objf)
     val paramsWithValues = try{
-      val tuned = minimize(objf, get(paramValueInitial).get.toVector)(config)
+      val tuned = minimize(finalFn, get(paramValueInitial).get.toVector)(config)
       val bestParameter = tuned.get(0)
-      System.err.println("Best parameters " + tuned.get) 
+      System.err.println("Best parameters " + tuned.get  + " with eval " + finalFn.apply(tuned.get)) 
       val localParamsWithValues = get(paramName).get.zipWithIndex.map{ case (name,index) => (name, tuned.get(index)) }
       localParamsWithValues
     } catch {
