@@ -17,27 +17,25 @@ trait NeedQrels extends PipelineStage {
   def setQrelsFile(value: String): this.type = set(qrelsFile, value)
 }
 
-class QrelTransformer(override val uid: String) extends Transformer with NeedQrels {
+class QrelTransformer(override val uid: String) extends Transformer with NeedQrels with LabelStageTrait {
   
   def this() = {
     this(Identifiable.randomUID("QrelTransformer"))
   }
   
   
-  final val outputLabelCol= new Param[String](this, "outputLabelCol", "The output column containing the (relevance) label")
   final val inputQueryNumCol= new Param[String](this, "inputQueryNumCol", "The input column containing the queries")
-  final val inputDocnoCol= new Param[String](this, "inputDocnoCol", "The input column containing the docnos")
+  final val inputDocnoCol = new Param[String](this, "inputDocnoCol", "The input column containing the docnos")
   
   def copy(extra: ParamMap): QrelTransformer = {
     defaultCopy(extra)
   }
   
-  def setOutputLabelCol(value: String): this.type = set(outputLabelCol, value)
   def setInputDocnoCol(value: String): this.type = set(inputDocnoCol, value)
   def setInputQueryNumCol(value: String): this.type = set(inputQueryNumCol, value)
   
   
-  setDefault(outputLabelCol, "label")
+  
   setDefault(inputQueryNumCol, "qid")
   setDefault(inputDocnoCol, "docno")
   
@@ -67,9 +65,13 @@ class QrelTransformer(override val uid: String) extends Transformer with NeedQre
     val qrelLines = df.sparkSession.read.textFile(get(qrelsFile).get)
     val qrelDF = qrelLines
       .map(_.split("\\s+"))
-      .map(parts => (parts(0), parts(1), parts(2), Integer.parseInt(parts(3)) ))
+      .map(parts => {
+        //we dont want NDCG calculated on label values < 0
+        var label = Integer.parseInt(parts(3))
+        label = if (label < 0) 0 else label
+        (parts(0), parts(1), parts(2), label)}
+      )
       .toDF("qid", "iter", "docno", $(outputLabelCol)).as("qrels")
-    
     System.out.println("We have " + qrelDF.count() + " qrels")
     df.as("res")
       .join(qrelDF, df($(inputQueryNumCol)) === qrelDF("qid") && df($(inputDocnoCol)) === qrelDF("docno"), "left_outer")
