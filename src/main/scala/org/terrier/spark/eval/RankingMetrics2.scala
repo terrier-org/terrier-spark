@@ -67,7 +67,7 @@ class RankingMetrics2[T: ClassTag](predictionAndLabels: Seq[(Array[T], Map[T,Int
    * If a query has an empty ground truth set, the average precision will be zero and a log
    * warning is generated.
    */
-  lazy val meanAveragePrecision: Double = {
+  def meanAveragePrecision(k: Int): Double = {
     val x = predictionAndLabels.map { case (pred, lab) =>
       
       val numRel = lab.filter(_._2 > 0).size
@@ -75,7 +75,9 @@ class RankingMetrics2[T: ClassTag](predictionAndLabels: Seq[(Array[T], Map[T,Int
         var i = 0
         var cnt = 0
         var precSum = 0.0
-        val n = pred.length
+        val labSetSize = lab.size
+        val n = math.min(math.max(pred.length, labSetSize), k)
+        //val n = pred.length
         while (i < n) {
           val rel = lab.get(pred(i)) 
           if (rel.isDefined && rel.get > 0) {
@@ -110,7 +112,12 @@ class RankingMetrics2[T: ClassTag](predictionAndLabels: Seq[(Array[T], Map[T,Int
    * @param k the position to compute the truncated ndcg, must be positive
    * @return the average ndcg at the first k ranking positions
    */
-  def ndcgAt(k: Int): Double = {
+  def meanNDCGAt(k: Int): Double = {
+    val x = ndcgAt(k)
+    x.sum.toDouble / x.size.toDouble
+  }
+  
+  def ndcgAt(k: Int): Seq[Double] = {
     require(k > 0, "ranking position k should be positive")
     val x = predictionAndLabels.map { case (pred, lab) =>
       
@@ -139,7 +146,8 @@ class RankingMetrics2[T: ClassTag](predictionAndLabels: Seq[(Array[T], Map[T,Int
         0.0
       }
     }
-    x.sum.toDouble / x.size.toDouble
+    x
+    //x.sum.toDouble / x.size.toDouble
   }
 
 }
