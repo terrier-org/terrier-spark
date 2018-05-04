@@ -73,7 +73,7 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
     
     val addQrelStage = new QrelTransformer()
     addQrelStage.set(addQrelStage.qrelsFile, get(this.qrelsFile).get)
-    val ndcgStage = new NDCGEvalutor(get(this.measureCutoff).get)
+    val ndcgStage = new NDCGEvaluator(get(this.measureCutoff).get)
     val config = new NelderMeadConfig(tol = get(measureTol).get, maxIter = get(optMaxIter).get)
     
     val objf = new ObjectiveFunction

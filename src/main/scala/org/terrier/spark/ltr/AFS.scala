@@ -58,7 +58,7 @@ class AFS extends Serializable {
   def eval(input : Iterable[(String,Double,Double)]) : Double = {
     val iterd = getRankingMetricsForm(input)
     val metrics = new RankingMetrics2[Int](iterd)
-    metrics.meanAveragePrecision
+    metrics.meanAveragePrecision(1000)
     //ndcgAt(1000)
   }
   

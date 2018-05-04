@@ -15,7 +15,7 @@ import org.terrier.spark.ml.FeaturesQueryingTransformer
 import org.terrier.spark.ml.QrelTransformer
 import org.terrier.spark.ml.QueryingTransformer
 import org.terrier.spark.LTRPipeline
-import org.terrier.spark.ml.NDCGEvalutor
+import org.terrier.spark.ml.NDCGEvaluator
 import org.terrier.spark.ml.ReplaceScoreTransformer
 import org.terrier.spark.ml.ArbitraryParameterTrainingEstimator
 import org.terrier.spark.ml.ReplaceScoreTransformer
@@ -74,7 +74,7 @@ class TestSparkTRPipeline extends FlatSpec {
       .build()
     val cv = new CrossValidator()
       .setEstimator(pipeline)
-      .setEvaluator(new NDCGEvalutor(20))
+      .setEvaluator(new NDCGEvaluator(20))
       .setEstimatorParamMaps(paramGrid)
       .setNumFolds(2)
     val model = cv.fit(trTopics)
@@ -85,10 +85,10 @@ class TestSparkTRPipeline extends FlatSpec {
     val metricsUntrained = getRankingMetrics(rtrUntrained)
     val metricsTrained = getRankingMetrics(rtrTrained)
     
-    System.out.println("*** UNTRAINED MAP@1000 " + metricsUntrained.meanAveragePrecision)
+    System.out.println("*** UNTRAINED MAP@1000 " + metricsUntrained.meanAveragePrecision(1000))
     System.out.println("*** UNTRAINED NDCG@20 " + metricsUntrained.ndcgAt(20))
     
-    System.out.println("*** RESULTING MAP@1000 " + metricsTrained.meanAveragePrecision)
+    System.out.println("*** RESULTING MAP@1000 " + metricsTrained.meanAveragePrecision(1000))
     System.out.println("*** RESULTING NDCG@20 " + metricsTrained.ndcgAt(20))
     System.out.println("*** RESULTING CV_MODEL params " + model.bestModel.extractParamMap() )
   }
@@ -216,7 +216,7 @@ class TestSparkTRPipeline extends FlatSpec {
       
     val cv = new CrossValidator()
       .setEstimator(pipeline)
-      .setEvaluator(new NDCGEvalutor(20))
+      .setEvaluator(new NDCGEvaluator(20))
       .setEstimatorParamMaps(paramGrid)
       .setNumFolds(2)
     val model = cv.fit(trTopics)   
@@ -227,11 +227,11 @@ class TestSparkTRPipeline extends FlatSpec {
     val metricsUntrained = getRankingMetrics(rtrUntrained)
     val metricsTrained = getRankingMetrics(rtrTrained)
     
-    System.out.println("*** UNTRAINED MAP@1000 " + metricsUntrained.meanAveragePrecision)
-    System.out.println("*** UNTRAINED NDCG@20 " + metricsUntrained.ndcgAt(20))
+    System.out.println("*** UNTRAINED MAP@1000 " + metricsUntrained.meanAveragePrecision(1000))
+    System.out.println("*** UNTRAINED NDCG@20 " + metricsUntrained.meanNDCGAt(20))
     
-    System.out.println("*** RESULTING MAP@1000 " + metricsTrained.meanAveragePrecision)
-    System.out.println("*** RESULTING NDCG@20 " + metricsTrained.ndcgAt(20))
+    System.out.println("*** RESULTING MAP@1000 " + metricsTrained.meanAveragePrecision(1000))
+    System.out.println("*** RESULTING NDCG@20 " + metricsTrained.meanNDCGAt(20))
     System.out.println("*** RESULTING CV_MODEL params " + model.bestModel.extractParamMap() )
   }
    
