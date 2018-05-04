@@ -14,7 +14,7 @@ object LTRFactory {
   
   def train(sc : SparkContext, ltrName : String, training : RDD[QueryLabeledPoint], validation : RDD[QueryLabeledPoint]) : LTRModel = {
     
-    val rtr = (ltrName: @switch) match {
+    val rtr = ltrName match {
       case "afs" => {
           new LinearLTRModel(new org.terrier.spark.ltr.AFS().trainAFS(sc,training,validation))
       }

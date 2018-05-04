@@ -16,6 +16,7 @@ import org.terrier.spark.ml.QrelTransformer
 import org.terrier.spark.ml.QueryingTransformer
 import org.terrier.spark.LTRPipeline
 import org.terrier.spark.ml.NDCGEvaluator
+import org.terrier.spark.ml.RankingEvaluator
 import org.terrier.spark.ml.ReplaceScoreTransformer
 import org.terrier.spark.ml.ArbitraryParameterTrainingEstimator
 import org.terrier.spark.ml.ReplaceScoreTransformer

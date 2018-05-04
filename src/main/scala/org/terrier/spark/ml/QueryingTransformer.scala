@@ -22,6 +22,7 @@ import org.apache.spark.ml.linalg.Vectors
 import org.terrier.matching.FatFeaturedScoringMatching
 import org.terrier.matching.daat.FatFull
 import org.apache.spark.ml.PipelineStage
+import org.terrier.spark.Conversions
 
 class FeaturesQueryingTransformer(override val uid: String) extends QueryingTransformer(uid)
 {
@@ -158,30 +159,13 @@ trait QueryingPipelineStage extends PipelineStage {
       .add(StructField("rank", IntegerType, false))
   }
   
-  def mapResultSet(res: ResultSet) : Iterable[(String, Int, Double, Int)] = 
-  {
-    val numResults = Math.min(res.getResultSize, $(maxResults))
-    val rtr = Array.ofDim[(String, Int, Double, Int)](numResults)
-    if (numResults > 0 && res.hasMetaItems("docno"))
-	{
-      for (i <- 0 to numResults-1)
-      {
-        val row = (res.getMetaItems("docno")(i), res.getDocids()(i), res.getScores()(i), i)
-        rtr(i) = row
-      }
-	} else {
-      throw new IllegalArgumentException("ResultSet did not contain docnos")
-    }
-    rtr
-  }
-  
   def transform(df: Dataset[_]): DataFrame = {
     import df.sparkSession.implicits._
 
     System.out.println("Querying for "+ df.count() + " queries")
     
     def getRes2(qid : String, query : String) : Iterable[(String, Int, Double, Int)] = {
-      mapResultSet(getTerrier.apply((qid,query))._2)
+      Conversions.mapResultSet(getTerrier.apply((qid,query))._2, $(maxResults))
     }
     
     val newDF = df.select($(inputQueryNumCol), $(inputQueryCol)).as[(String,String)]

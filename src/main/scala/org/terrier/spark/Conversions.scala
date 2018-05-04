@@ -4,6 +4,24 @@ import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.terrier.learning.FeaturedResultSet
 import org.terrier.spark.ltr.QueryLabeledPoint
+import org.terrier.matching.ResultSet
+
+object Conversions {
+  
+  def mapResultSet(res: ResultSet, maxResults : Int) : Iterable[(String, Int, Double, Int)] =
+  {
+    require(res.hasMetaItems("docno") || res.getResultSize == 0, "ResultSet from Terrier must provide docno metadata. "
+        +"Perhaps decorate:on needs to be set as a control")
+    val numResults = Math.min(res.getResultSize, maxResults)
+    val rtr = Array.ofDim[(String, Int, Double, Int)](numResults)
+    for (i <- 0 to numResults-1)
+    {
+      val row = (res.getMetaItems("docno")(i), res.getDocids()(i), res.getScores()(i), i)
+      rtr(i) = row
+    }
+    rtr
+  }
+}
 
 class Conversions extends ( ((String,FeaturedResultSet)) => Iterator[QueryLabeledPoint] ) with Serializable {
  

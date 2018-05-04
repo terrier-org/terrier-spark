@@ -13,6 +13,8 @@ import java.io.ObjectOutputStream
 import java.io.ObjectInputStream
 import java.io.Serializable
 import org.apache.hadoop.mapred.IndexCache
+import org.terrier.querying.LocalManager
+import org.terrier.querying.Request
 
 object TerrierQueryMapClient {
   val managerCache = scala.collection.mutable.Map[Properties,Manager]();
@@ -52,7 +54,7 @@ class TerrierQueryMapClient(props : Map[String,String]) extends ( ((String,Strin
       }
     if (index == null)
       throw new IllegalArgumentException("Index not found: " + Index.getLastIndexLoadError)
-    val m : Manager = new Manager(index)
+    val m : Manager = new LocalManager(index)
     m
   }
  
@@ -79,7 +81,7 @@ class TerrierQueryMapClient(props : Map[String,String]) extends ( ((String,Strin
         ApplicationSetup.getProperty("trec.matching", matching), 
         ApplicationSetup.getProperty("trec.model", wmodel)) 
     manager.runSearchRequest(srq)
-    val rtr = srq.getResultSet
+    val rtr = srq.asInstanceOf[Request].getResultSet
     (qid, rtr)
   }
 }
