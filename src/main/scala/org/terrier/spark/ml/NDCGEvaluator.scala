@@ -25,6 +25,7 @@ class RankingEvaluator(m : Measure.Value, cutoff : Int) extends Evaluator
     //def setMeasure(value: String): this.type = set(measure, Measure.fromString(value))
        
     setDefault(measure, m)
+    setDefault(rankCutoff, cutoff)
     
     def copy(extra: ParamMap): RankingEvaluator = {
       defaultCopy(extra)
