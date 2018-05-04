@@ -162,10 +162,15 @@ trait QueryingPipelineStage extends PipelineStage {
   {
     val numResults = Math.min(res.getResultSize, $(maxResults))
     val rtr = Array.ofDim[(String, Int, Double, Int)](numResults)
-    for (i <- 0 to numResults-1)
-    {
-      val row = (res.getMetaItems("docno")(i), res.getDocids()(i), res.getScores()(i), i)
-      rtr(i) = row
+    if (numResults > 0 && res.hasMetaItems("docno"))
+	{
+      for (i <- 0 to numResults-1)
+      {
+        val row = (res.getMetaItems("docno")(i), res.getDocids()(i), res.getScores()(i), i)
+        rtr(i) = row
+      }
+	} else {
+      throw new IllegalArgumentException("ResultSet did not contain docnos")
     }
     rtr
   }
