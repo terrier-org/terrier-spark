@@ -6,7 +6,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry excluding="WSDWeighting.scala|org/apache/spark/ml/source/libsvm/LibSVMOptions.scala|org/apache/spark/ml/source/libsvm/LTRRelation.scala|org/apache/spark/ml/source/libsvm/LTRSource.scala|org/terrier/spark/ml/WSDWeighting.scala" kind="src" output="target/scala-2.11/classes" path="src/main/scala">
+	<classpathentry kind="src" output="target/scala-2.11/classes" path="src/main/scala">
 		<attributes>
 			<attribute name="optional" value="true"/>
 			<attribute name="maven.pomderived" value="true"/>

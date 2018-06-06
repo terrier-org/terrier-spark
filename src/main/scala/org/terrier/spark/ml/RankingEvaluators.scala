@@ -46,7 +46,7 @@ class RankingEvaluator(m : Measure.Value, cutoff : Int) extends Evaluator
       val xgg = xff.toLocalIterator.toSeq
       $(measure) match {
         case Measure.NDCG => new RankingMetrics2[Int](xgg).ndcgAt($(rankCutoff))
-        //case Measure.MAP => new RankingMetrics2[Int](xgg).meanAveragePrecision($(rankCutoff))
+        case Measure.MAP => new RankingMetrics2[Int](xgg).averagePrecision($(rankCutoff))
       }
     }
     
@@ -65,7 +65,7 @@ class RankingEvaluator(m : Measure.Value, cutoff : Int) extends Evaluator
       val xgg = xff.toLocalIterator.toSeq
       $(measure) match {
         case Measure.NDCG => new RankingMetrics2[Int](xgg).meanNDCGAt($(rankCutoff))
-        //case Measure.MAP => new RankingMetrics2[Int](xgg).meanAveragePrecision($(rankCutoff))
+        case Measure.MAP => new RankingMetrics2[Int](xgg).meanAveragePrecision($(rankCutoff))
       }
       
     }

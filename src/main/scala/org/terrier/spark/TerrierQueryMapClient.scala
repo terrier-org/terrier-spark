@@ -22,6 +22,7 @@ object TerrierQueryMapClient {
   
 }
 
+/** This is the overall client code for accessing a terrier instance from Spark */
 class TerrierQueryMapClient(props : Map[String,String]) extends ( ((String,String)) => (String,ResultSet)) with Serializable {
   
   var matching = "org.terrier.matching.daat.Full"

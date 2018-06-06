@@ -14,12 +14,12 @@ import org.terrier.spark.eval.RankingMetrics2
 import org.terrier.spark.ml.FeaturesQueryingTransformer
 import org.terrier.spark.ml.QrelTransformer
 import org.terrier.spark.ml.QueryingTransformer
-import org.terrier.spark.LTRPipeline
 import org.terrier.spark.ml.NDCGEvaluator
 import org.terrier.spark.ml.RankingEvaluator
 import org.terrier.spark.ml.ReplaceScoreTransformer
 import org.terrier.spark.ml.ArbitraryParameterTrainingEstimator
 import org.terrier.spark.ml.ReplaceScoreTransformer
+import org.terrier.spark.TopicSource
 
 
 class TestSparkTRPipeline extends FlatSpec {
@@ -45,9 +45,9 @@ class TestSparkTRPipeline extends FlatSpec {
             "terrier.etc" -> "/Users/craigm/git/Terrier/etc",
             "terrier.index.path" -> "/Users/craigm/wt2g_index/index/")
     
-    LTRPipeline.configureTerrier(props)
+    TopicSource.configureTerrier(props)
     
-    val allTopicsList = LTRPipeline.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450").toList
+    val allTopicsList = TopicSource.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450").toList
     val Array(trTopics, teTopics) = allTopicsList.toDF("qid", "query").randomSplit(Array(0.5,0.5), 130882)
     val queryTransform = new QueryingTransformer()
       .setTerrierProperties(props)
@@ -101,9 +101,9 @@ class TestSparkTRPipeline extends FlatSpec {
             "terrier.etc" -> "/Users/craigm/git/Terrier/etc",
             "terrier.index.path" -> "/Users/craigm/wt2g_index/index/")
     
-    LTRPipeline.configureTerrier(props)
+    TopicSource.configureTerrier(props)
     
-    val allTopicsList = LTRPipeline.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450").toList
+    val allTopicsList = TopicSource.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450").toList
     val Array(trTopics, teTopics) = allTopicsList.toDF("qid", "query").randomSplit(Array(0.5,0.5), 130882)
     
     val tuner = new ArbitraryParameterTrainingEstimator()
@@ -128,9 +128,9 @@ class TestSparkTRPipeline extends FlatSpec {
             "terrier.etc" -> "/Users/craigm/git/Terrier/etc",
             "terrier.index.path" -> "/Users/craigm/wt2g_index/index/")
     
-    LTRPipeline.configureTerrier(props)
+    TopicSource.configureTerrier(props)
     
-    val allTopicsList = LTRPipeline.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450").toList
+    val allTopicsList = TopicSource.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450").toList
     val Array(trTopics, teTopics) = allTopicsList.toDF("qid", "query").randomSplit(Array(0.5,0.5), 130882)
     
     val fields = Seq(0,1,2)
@@ -172,9 +172,9 @@ class TestSparkTRPipeline extends FlatSpec {
             "terrier.etc" -> "/Users/craigm/git/Terrier/etc",
             "terrier.index.path" -> "/Users/craigm/wt2g_index/index/")
     
-    LTRPipeline.configureTerrier(props)
+    TopicSource.configureTerrier(props)
     
-    val allTopicsList = LTRPipeline.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450").toList
+    val allTopicsList = TopicSource.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450").toList
     val Array(trTopics, teTopics) = allTopicsList.toDF("qid", "query").randomSplit(Array(0.5,0.5), 130882)
     
     System.out.println("found " + allTopicsList.size + " topics in allTopics df")
@@ -284,9 +284,9 @@ class TestSparkTRPipeline extends FlatSpec {
             "terrier.etc" -> "/Users/craigm/git/Terrier/etc",
             "terrier.index.path" -> "/Users/craigm/wt2g_index/index/")
     
-    LTRPipeline.configureTerrier(props)
+    TopicSource.configureTerrier(props)
     
-    val trainingTopicIter = LTRPipeline.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450")
+    val trainingTopicIter = TopicSource.extractTRECTopics("/Users/craigm/wt2g_index/topicsqrels/small_web/topics.401-450")
     val trainingTopics = trainingTopicIter.toList.toDF("qid", "query")
     
     System.out.println("found " + trainingTopics.count() + " topics in trainingTopics df")

@@ -63,11 +63,10 @@ class RankingMetrics2[T: ClassTag](predictionAndLabels: Seq[(Array[T], Map[T,Int
   }
 
   /**
-   * Returns the mean average precision (MAP) of all the queries.
-   * If a query has an empty ground truth set, the average precision will be zero and a log
-   * warning is generated.
+   * Returns the average precision (MAP) for all of the queries.
+   * If a query has an empty ground truth set, the average precision will be zero.
    */
-  def meanAveragePrecision(k: Int): Double = {
+  def averagePrecision(k: Int): Seq[Double] = {
     val x = predictionAndLabels.map { case (pred, lab) =>
       
       val numRel = lab.filter(_._2 > 0).size
@@ -92,6 +91,12 @@ class RankingMetrics2[T: ClassTag](predictionAndLabels: Seq[(Array[T], Map[T,Int
         0.0
       }
     }
+    x
+    //x.sum.toDouble / x.size.toDouble
+  }
+  
+   def meanAveragePrecision(k: Int): Double = {
+    val x = averagePrecision(k)
     x.sum.toDouble / x.size.toDouble
   }
 
