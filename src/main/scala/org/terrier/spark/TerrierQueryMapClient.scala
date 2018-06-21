@@ -19,6 +19,7 @@ import org.terrier.querying.IndexRef
 import org.terrier.querying.ManagerFactory
 import org.terrier.structures.IndexFactory
 import org.terrier.querying.SearchRequest
+import org.terrier.structures.concurrent.ConcurrentIndexUtils
 
 object TerrierQueryMapClient {
   val managerCache = scala.collection.mutable.Map[Properties,Manager]();
@@ -57,9 +58,10 @@ class TerrierQueryMapClient(indexref : IndexRef, props : Map[String,String]) ext
           System.err.println(Thread.currentThread().getContextClassLoader.toString());
           System.err.println("Loading index, indexCache had " + TerrierQueryMapClient.indexCache.size + " items" )
           val tmp = IndexFactory.of(indexref)
+          
           if (tmp == null)
             throw new IllegalArgumentException("Index not found for " + indexref + " perhaps due to " + Index.getLastIndexLoadError)
-          
+          ConcurrentIndexUtils.makeConcurrentForRetrieval(tmp)
           TerrierQueryMapClient.indexCache.put(indexref, tmp)
           Some(tmp)
         }
