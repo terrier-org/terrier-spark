@@ -22,23 +22,12 @@ import org.apache.spark.ml.param.shared.HasPredictionCol
 class RankingMetrics2[T: ClassTag](predictionAndLabels: Seq[(Array[T], Map[T,Int])]) {
 
   /**
-   * Compute the average precision of all the queries, truncated at ranking position k.
-   *
-   * If for a query, the ranking algorithm returns n (n is less than k) results, the precision
-   * value will be computed as #(relevant items retrieved) / k. This formula also applies when
-   * the size of the ground truth set is less than k.
-   *
-   * If a query has an empty ground truth set, zero will be used as precision together with
-   * a log warning.
-   *
-   * See the following paper for detail:
-   *
-   * IR evaluation methods for retrieving highly relevant documents. K. Jarvelin and J. Kekalainen
+   * Compute the  precision of all the queries, truncated at ranking position k.
    *
    * @param k the position to compute the truncated precision, must be positive
-   * @return the average precision at the first k ranking positions
+   * @return the precision at the k th rank, for each query
    */
-  def precisionAt(k: Int): Double = {
+  def precisionAt(k: Int) = {
     require(k > 0, "ranking position k should be positive")
     val x = predictionAndLabels.map { case (pred, lab) =>
       
@@ -59,6 +48,11 @@ class RankingMetrics2[T: ClassTag](predictionAndLabels: Seq[(Array[T], Map[T,Int
         0.0
       }
     }
+    x
+  }
+  
+  def meanPrecisionAt(k: Int): Double = {
+    val x = precisionAt(k)
     x.sum / x.size.toDouble
   }
 

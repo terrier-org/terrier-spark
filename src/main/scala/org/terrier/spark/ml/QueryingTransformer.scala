@@ -23,6 +23,8 @@ import org.terrier.matching.FatFeaturedScoringMatching
 import org.terrier.matching.daat.FatFull
 import org.apache.spark.ml.PipelineStage
 import org.terrier.spark.Conversions
+import org.terrier.querying.IndexRef
+import org.terrier.querying.Request
 
 class FeaturesQueryingTransformer(override val uid: String) extends QueryingTransformer(uid)
 {
@@ -72,7 +74,7 @@ class FeaturesQueryingTransformer(override val uid: String) extends QueryingTran
     System.out.println("Querying for "+ df.count() + " queries")
     
     def getRes2(qid : String, query : String) : Iterable[(String, Int, Double, Int, Vector)] = {
-      mapResultSetFR(getTerrier.apply((qid,query))._2.asInstanceOf[FeaturedResultSet])
+      mapResultSetFR(getTerrier.apply((qid,query)).asInstanceOf[Request].getResultSet.asInstanceOf[FeaturedResultSet])
     }
     
     val newDF = df.select($(inputQueryNumCol), $(inputQueryCol)).as[(String,String)]
@@ -100,6 +102,7 @@ class QueryingTransformer(override val uid: String) extends Transformer with Que
 
 trait QueryingPipelineStage extends PipelineStage {
   
+  final val indexRef = new Param[IndexRef](this, "index", "The reference to the index to be queried")
   final val inputQueryCol= new Param[String](this, "inputQueryCol", "The input column containing the queries")
   final val inputQueryNumCol= new Param[String](this, "inputQueryNumCol", "The input column containing the queries")
   final val sampleModel = new Param[String](this, "sampleModel", "The sample weighting model")
@@ -118,8 +121,7 @@ trait QueryingPipelineStage extends PipelineStage {
   def getTerrier() = {
     if (terrier.isEmpty)
     {
-      terrier = Some( new TerrierQueryMapClient(
-        getTerrierProperties ))
+      terrier = Some( new TerrierQueryMapClient($(indexRef), getTerrierProperties ))
     }
     val rtr = terrier.get
     rtr.wmodel = $(sampleModel)
@@ -130,6 +132,7 @@ trait QueryingPipelineStage extends PipelineStage {
    get(localTerrierProperties).get 
   }
   
+  def setIndexReference(value : IndexRef): this.type = set(indexRef, value)
   def setInputQueryCol(value: String): this.type = set(inputQueryCol, value)
   def setInputQueryNumCol(value: String): this.type = set(inputQueryNumCol, value)
   def setSampleModel(value : String): this.type = set(sampleModel, value)
@@ -165,7 +168,8 @@ trait QueryingPipelineStage extends PipelineStage {
     System.out.println("Querying for "+ df.count() + " queries")
     
     def getRes2(qid : String, query : String) : Iterable[(String, Int, Double, Int)] = {
-      Conversions.mapResultSet(getTerrier.apply((qid,query))._2, $(maxResults))
+      Conversions.mapScoredDocList(getTerrier.apply((qid,query)).getResults, $(maxResults))
+      //Conversions.mapResultSet(getTerrier.apply((qid,query))._2, $(maxResults))
     }
     
     val newDF = df.select($(inputQueryNumCol), $(inputQueryCol)).as[(String,String)]

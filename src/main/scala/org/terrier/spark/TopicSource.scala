@@ -3,6 +3,7 @@ package org.terrier.spark
 import java.util.Properties
 import org.terrier.applications.batchquerying.QuerySource
 import org.terrier.applications.batchquerying.TRECQuery
+import org.terrier.applications.batchquerying.SingleLineTRECQuery
 
 object TopicSource {
   def configureTerrier(props : scala.collection.Map[String,String]) = {
@@ -13,7 +14,23 @@ object TopicSource {
     props
   }
   
-  //use TRECQuery to parse wt2g topics
+  //use SingleLineTRECQuery to parse topics file
+  def extractSingleLineTopics(topicsFile : String) = {
+    val topicsSource : QuerySource = new SingleLineTRECQuery(topicsFile)
+
+    //resort to java to get a scala iterator of qids and queries
+    var topics = new java.util.ArrayList[(String,String)]()
+    while(topicsSource.hasNext()) {
+      val topic = topicsSource.next
+      val id = topicsSource.getQueryId
+      topics.add((id,topic))
+    }
+    assert(topics.size() > 0)
+    val topicsI = scala.collection.JavaConversions.asScalaIterator(topics.iterator())
+    topicsI
+  }
+  
+  //use TRECQuery to parse TREC formatted topics
   def extractTRECTopics(topicsFile : String) = {
     val topicsSource : QuerySource = new TRECQuery(topicsFile)
 

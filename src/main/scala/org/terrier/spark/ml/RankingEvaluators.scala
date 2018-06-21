@@ -6,7 +6,19 @@ import org.apache.spark.sql.Dataset
 import org.apache.spark.ml.evaluation.Evaluator
 import org.apache.spark.sql.Row
 import org.apache.spark.ml.param.Param
-import org.terrier.spark.ml.eval.Measure
+
+object Measure extends Enumeration {
+  val NDCG, MAP, P = Value
+  
+  def fromString(name : String) = {
+    name.toLowerCase() match {
+      case "ndcg" => Measure.NDCG
+      case "map" => Measure.MAP
+      case "ap" => Measure.MAP
+      case "p" => Measure.P
+    }
+  }
+}
 
 class NDCGEvaluator(cutoff : Int) extends RankingEvaluator(Measure.NDCG, cutoff : Int)
 
@@ -47,6 +59,7 @@ class RankingEvaluator(m : Measure.Value, cutoff : Int) extends Evaluator
       $(measure) match {
         case Measure.NDCG => new RankingMetrics2[Int](xgg).ndcgAt($(rankCutoff))
         case Measure.MAP => new RankingMetrics2[Int](xgg).averagePrecision($(rankCutoff))
+        case Measure.P => new RankingMetrics2[Int](xgg).precisionAt($(rankCutoff))
       }
     }
     
@@ -66,6 +79,7 @@ class RankingEvaluator(m : Measure.Value, cutoff : Int) extends Evaluator
       $(measure) match {
         case Measure.NDCG => new RankingMetrics2[Int](xgg).meanNDCGAt($(rankCutoff))
         case Measure.MAP => new RankingMetrics2[Int](xgg).meanAveragePrecision($(rankCutoff))
+        case Measure.P => new RankingMetrics2[Int](xgg).meanPrecisionAt($(rankCutoff))
       }
       
     }

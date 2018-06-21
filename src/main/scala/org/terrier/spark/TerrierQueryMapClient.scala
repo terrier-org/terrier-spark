@@ -15,15 +15,21 @@ import java.io.Serializable
 import org.apache.hadoop.mapred.IndexCache
 import org.terrier.querying.LocalManager
 import org.terrier.querying.Request
+import org.terrier.querying.IndexRef
+import org.terrier.querying.ManagerFactory
+import org.terrier.structures.IndexFactory
+import org.terrier.querying.SearchRequest
 
 object TerrierQueryMapClient {
   val managerCache = scala.collection.mutable.Map[Properties,Manager]();
-  val indexCache = scala.collection.mutable.Map[(String,String),Index]();
+  val indexCache = scala.collection.mutable.Map[IndexRef,Index]();
   
 }
 
+
+
 /** This is the overall client code for accessing a terrier instance from Spark */
-class TerrierQueryMapClient(props : Map[String,String]) extends ( ((String,String)) => (String,ResultSet)) with Serializable {
+class TerrierQueryMapClient(indexref : IndexRef, props : Map[String,String]) extends ( ((String,String)) => SearchRequest) with Serializable {
   
   var matching = "org.terrier.matching.daat.Full"
   var wmodel = "InL2"
@@ -40,22 +46,28 @@ class TerrierQueryMapClient(props : Map[String,String]) extends ( ((String,Strin
   {
     ApplicationSetup.clearAllProperties();
     ApplicationSetup.bootstrapInitialisation(props)
-    val indexLocation = (ApplicationSetup.TERRIER_INDEX_PATH,ApplicationSetup.TERRIER_INDEX_PREFIX)
+    //val indexLocation = IndexRef.of(ApplicationSetup.TERRIER_INDEX_PATH,ApplicationSetup.TERRIER_INDEX_PREFIX)
     
-    val index : Index = 
-      if (TerrierQueryMapClient.indexCache.contains(indexLocation))
-           TerrierQueryMapClient.indexCache.get(indexLocation).get
+    val index : Option[Index] = 
+      if (IndexFactory.isLocal(indexref))
+        if (TerrierQueryMapClient.indexCache.contains(indexref))
+             TerrierQueryMapClient.indexCache.get(indexref)
+        else
+        {
+          System.err.println(Thread.currentThread().getContextClassLoader.toString());
+          System.err.println("Loading index, indexCache had " + TerrierQueryMapClient.indexCache.size + " items" )
+          val tmp = IndexFactory.of(indexref)
+          if (tmp == null)
+            throw new IllegalArgumentException("Index not found for " + indexref + " perhaps due to " + Index.getLastIndexLoadError)
+          TerrierQueryMapClient.indexCache.put(indexref, tmp)
+          Some(tmp)
+        }
       else
-      {
-        System.err.println(Thread.currentThread().getContextClassLoader.toString());
-        System.err.println("Loading index, indexCache had " + TerrierQueryMapClient.indexCache.size + " items" )
-        val tmp = Index.createIndex()
-        TerrierQueryMapClient.indexCache.put(indexLocation, tmp)
-        tmp
-      }
-    if (index == null)
-      throw new IllegalArgumentException("Index not found: " + Index.getLastIndexLoadError)
-    val m : Manager = new LocalManager(index)
+        None
+    
+    val m : Manager = ManagerFactory.from(index match { 
+        case Some(s) => s.getIndexRef 
+        case None => indexref })
     m
   }
  
@@ -63,12 +75,12 @@ class TerrierQueryMapClient(props : Map[String,String]) extends ( ((String,Strin
     
   }
   
-  def apply(input : (String, String)):(String,ResultSet) = {
+  def apply(input : (String, String)) : SearchRequest = {
     val m = getManager()
     runQuery(m,(input._1,input._2))
   }
   
-  def runQuery(manager : Manager, input: (String,String)): (String,ResultSet) = {
+  def runQuery(manager : Manager, input: (String,String)) : SearchRequest = {
     val qid = input._1
     val query = input._2
     val srq = manager.newSearchRequest(qid, query)
@@ -78,11 +90,9 @@ class TerrierQueryMapClient(props : Map[String,String]) extends ( ((String,Strin
         srq.setControl("c", props.get("c").get)
         srq.setControl("c_set", "true")
     }
-    srq.addMatchingModel(
-        ApplicationSetup.getProperty("trec.matching", matching), 
-        ApplicationSetup.getProperty("trec.model", wmodel)) 
+    srq.setControl(SearchRequest.CONTROL_MATCHING, ApplicationSetup.getProperty("trec.matching", matching))
+    srq.setControl(SearchRequest.CONTROL_WMODEL, ApplicationSetup.getProperty("trec.model", wmodel))
     manager.runSearchRequest(srq)
-    val rtr = srq.asInstanceOf[Request].getResultSet
-    (qid, rtr)
+    srq
   }
 }

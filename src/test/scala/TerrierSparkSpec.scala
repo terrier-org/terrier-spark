@@ -2,20 +2,32 @@ import org.scalatest.FlatSpec
 import org.terrier.spark.TerrierQueryMapClient
 import org.terrier.applications.batchquerying.QuerySource
 import org.terrier.applications.batchquerying.TRECQuery
+import org.terrier.querying.IndexRef
+import org.terrier.querying.Request
 
 
 class TerrierSparkSpec extends FlatSpec {
-  "A TerrierQueryMapClient" should "not return 0 results" in {
+  
+  val local_indexref = IndexRef.of("/Users/craigm/wt2g_index/index/data.properties")
+  val remote_indexref = IndexRef.of("http://demos.terrier.org/cw09b/")
+  
+  "A TerrierQueryMapClient" should "return results" in {
     val props = scala.collection.mutable.Map[String,String]()
     props.put("terrier.home", "/Users/craigm/git/Terrier")
     props.put("terrier.etc", "/Users/craigm/git/Terrier/etc")
-    //props.put("stopwords.filename", "/Users/craigm/git/Terrier/share/stopword-list.txt")
-    props.put("querying.default.controls","parsecontrols:on,parseql:on,applypipeline:on")
-    props.put("terrier.index.path", "/Users/craigm/wt2g_index/index")
-    
-    val mapper = new TerrierQueryMapClient(props.toMap)
-    val (qid,resultSet) = mapper.apply(("q1", "hello"))
-    assert(qid === "q1")
-    assert(resultSet.getResultSize > 0)
+    val mapper = new TerrierQueryMapClient(local_indexref, props.toMap)
+    val srq = mapper.apply(("q1", "hello"))
+    val numRes = srq.asInstanceOf[Request].getResultSet.getResultSize 
+    System.out.println(numRes)
+    assert(numRes > 0)
+  }
+  
+   "A remote TerrierQueryMapClient" should "return results" in {
+    val props = scala.collection.mutable.Map[String,String]()
+    props.put("terrier.home", "/Users/craigm/git/Terrier")
+    props.put("terrier.etc", "/Users/craigm/git/Terrier/etc") 
+    val mapper = new TerrierQueryMapClient(remote_indexref, props.toMap)
+    val srq = mapper.apply(("q1", "indri"))
+    assert(srq.getResults.size > 0)
   }
 }
