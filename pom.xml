@@ -95,6 +95,11 @@
 			<artifactId>scalaopt-core_2.11</artifactId>
 			<version>0.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.terrier</groupId>
+			<artifactId>terrier-concurrent</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<outputDirectory>target/scala-${scala.binary.version}/classes</outputDirectory>

@@ -59,6 +59,7 @@ class TerrierQueryMapClient(indexref : IndexRef, props : Map[String,String]) ext
           val tmp = IndexFactory.of(indexref)
           if (tmp == null)
             throw new IllegalArgumentException("Index not found for " + indexref + " perhaps due to " + Index.getLastIndexLoadError)
+          
           TerrierQueryMapClient.indexCache.put(indexref, tmp)
           Some(tmp)
         }
