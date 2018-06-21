@@ -22,8 +22,6 @@
 		<PermGen>64m</PermGen>
 		<MaxPermGen>512m</MaxPermGen>
 		<CodeCacheSize>512m</CodeCacheSize>
-		<zen.test.home>${session.executionRootDirectory}</zen.test.home>
-
 	</properties>
 	<prerequisites>
 		<maven>${maven.version}</maven>
