@@ -112,6 +112,7 @@ class TestSparkTRPipeline extends FlatSpec {
     val Array(trTopics, teTopics) = allTopicsList.toDF("qid", "query").randomSplit(Array(0.5,0.5), 130882)
     
     val tuner = new ArbitraryParameterTrainingEstimator()
+    tuner.set(tuner.measure, Measure.NDCG)
     tuner.setTerrierProperties(props)
     tuner.set(tuner.paramName, Seq("c"))
     tuner.setIndexReference(indexref)
@@ -155,6 +156,7 @@ class TestSparkTRPipeline extends FlatSpec {
         tuner.set(tuner.paramValueMin, 0d)
         tuner.set(tuner.measureTol, 1e-4)
         tuner.set(tuner.optMaxIter, 100)
+        tuner.set(tuner.measure, Measure.NDCG)
         tuner.set(tuner.measureCutoff, 20)
 
         tuner.setQrelsFile(qrels)
