@@ -12,6 +12,8 @@ import com.github.bruneli.scalaopt.core.ObjectiveFunction
 import com.github.bruneli.scalaopt.core.Variables
 import com.github.bruneli.scalaopt.core.derivativefree.NelderMead.minimize
 import com.github.bruneli.scalaopt.core.derivativefree.NelderMeadConfig
+import org.terrier.structures.IndexFactory
+
 
 class PropertyModel(
   override val uid: String,
@@ -33,6 +35,7 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
   extends Estimator[PropertyModel]
   with QueryingPipelineStage with NeedQrels
 {
+  final val measure = new Param[Measure.Value](this, "measure", "The measure to opt")
   final val paramName = new Param[Seq[String]](this, "paramName", "The names of the parameter[s] to opt")
   final val paramValueInitial = new Param[Seq[Double]](this, "paramValue", "The initial value of the parameter[s] to opt")
   final val paramValueMax = new Param[Double](this, "paramValueMax", "The max value of the parameter to opt")
@@ -69,11 +72,17 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
   
   override def fit(dataset: Dataset[_]): PropertyModel = {
     
-    require(get(paramName).get.length ==  get(paramValueInitial).get.length, "Must have correct number of parameters to optimise")
+    require(IndexFactory.isLocal($(indexRef)), 
+        "indexref must be for a local index - e.g. remote indices not yet supported")
+    require(get(paramName).get.length ==  get(paramValueInitial).get.length, 
+        "Must have correct number of parameters to optimise")
+    require(get(this.qrelsFile).isDefined, "qrels file must be set")
+    require(get(this.measure).isDefined, "measure must be set")
+    require(get(this.measureCutoff).isDefined, "measureCutoff must be set")
     
     val addQrelStage = new QrelTransformer()
     addQrelStage.set(addQrelStage.qrelsFile, get(this.qrelsFile).get)
-    val ndcgStage = new NDCGEvaluator(get(this.measureCutoff).get)
+    val evalStage = new RankingEvaluator(get(this.measure).get, get(this.measureCutoff).get)
     val config = new NelderMeadConfig(tol = get(measureTol).get, maxIter = get(optMaxIter).get)
     
     val objf = new ObjectiveFunction
@@ -107,7 +116,7 @@ class ArbitraryParameterTrainingEstimator(override val uid: String)
         {
           System.err.println("Evaluating "+ get(paramName).get + "=" + x)
           setTerrierProperties( get(localTerrierProperties).get ++ get(paramName).get.zipWithIndex.map{ case (name,index) => (name, x(index).toString) } )
-          val ndcg = -1 * ndcgStage.evaluate( addQrelStage.transform( transform(dataset) ) ) 
+          val ndcg = -1 * evalStage.evaluate( addQrelStage.transform( transform(dataset) ) ) 
           System.err.println(get(paramName).get + "=" + x + " => " + ndcg)
           ndcg
         }
