@@ -15,7 +15,7 @@ import org.apache.spark.ml.param.shared.HasPredictionCol
 /**
  * Evaluator for ranking algorithms.
  *
- * Java users should use `RankingMetrics$.of` to create a [[RankingMetrics]] instance.
+ * Java users should use `RankingMetrics2$.of` to create a [[RankingMetrics2]] instance.
  *
  * @param predictionAndLabels an RDD of (predicted ranking, ground truth set) pairs.
  */
