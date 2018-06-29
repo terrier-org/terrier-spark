@@ -75,7 +75,8 @@ class FeaturesQueryingTransformer(override val uid: String) extends QueryingTran
     require(IndexFactory.isLocal($(indexRef)), 
         "indexref must be for a local index - e.g. remote indices not yet supported")
 
-    System.out.println("Querying "+$(indexRef).toString()+" for "+ df.count() + " queries with feaures")
+    val queryCount =  df.count()
+    println("Querying "+$(indexRef).toString()+" for "+ queryCount + " queries with feaures")
     
     def getRes2(qid : String, query : String) : Iterable[(String, Int, Double, Int, Vector)] = {
       mapResultSetFR(getTerrier.apply((qid,query)).asInstanceOf[Request].getResultSet.asInstanceOf[FeaturedResultSet])
@@ -88,7 +89,9 @@ class FeaturesQueryingTransformer(override val uid: String) extends QueryingTran
     }.toDF($(inputQueryNumCol), "docno", "docid", "score", "rank", "features")
     
     val rtr = df.join(resDF, $(inputQueryNumCol))
-    System.out.println("Got for "+ rtr.count() + " results total")
+    val featureCount = rtr.head().getAs("features").asInstanceOf[Vector].size
+    val resultCount = rtr.count()
+    println("Got for "+ resultCount + " results total for " + queryCount +" queries and " + featureCount + " features")
     rtr
   }
 }
