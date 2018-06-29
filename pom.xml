@@ -40,6 +40,18 @@
 			<artifactId>spark-mllib_${scala.binary.version}</artifactId>
 			<version>${spark.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.terrier</groupId>
+			<artifactId>terrier-rest-client</artifactId>
+			<version>${terrier.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.hadoop</groupId>
+					<artifactId>hadoop-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
 		<dependency>
 			<groupId>org.terrier</groupId>
@@ -64,20 +76,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
-		<dependency>
-			<groupId>org.terrier</groupId>
-			<artifactId>terrier-rest-client</artifactId>
-			<version>${terrier.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.hadoop</groupId>
-					<artifactId>hadoop-core</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>
