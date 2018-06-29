@@ -174,7 +174,7 @@ class TestSparkTRPipeline extends FlatSpec {
    
    import spark.implicits._
    
-   TopicSource.configureTerrier(props ++ Map(  "proximity.dependency.type" -> "SD"))
+   TopicSource.configureTerrier(props)
    
    val allTopicsList = TopicSource.extractTRECTopics(topics).toList
    val Array(trTopics, teTopics) = allTopicsList.toDF("qid", "query").randomSplit(Array(0.5,0.5), 130882)
@@ -182,7 +182,7 @@ class TestSparkTRPipeline extends FlatSpec {
    System.out.println("found " + allTopicsList.size + " topics in allTopics df")
        
    val queryTransform = new FeaturesQueryingTransformer()
-     .setTerrierProperties(props)
+     .setTerrierProperties(props ++ Map(  "proximity.dependency.type" -> "SD"))
      .setIndexReference(indexref)
      .setRetrievalFeatures(List( 
          "WMODEL:BM25", 
