@@ -35,7 +35,10 @@ class RankingEvaluator(m : Measure.Value, cutoff : Int) extends Evaluator
     
     def setMeasure(value: Measure.Value): this.type = set(measure, value)
     //def setMeasure(value: String): this.type = set(measure, Measure.fromString(value))
-       
+      
+    //all ranking metrics thus far are better is bigger
+    override def isLargerBetter : Boolean = true
+    
     setDefault(measure, m)
     setDefault(rankCutoff, cutoff)
     
