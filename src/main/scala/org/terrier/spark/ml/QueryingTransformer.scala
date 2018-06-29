@@ -25,6 +25,7 @@ import org.apache.spark.ml.PipelineStage
 import org.terrier.spark.Conversions
 import org.terrier.querying.IndexRef
 import org.terrier.querying.Request
+import org.terrier.structures.IndexFactory
 
 class FeaturesQueryingTransformer(override val uid: String) extends QueryingTransformer(uid)
 {
@@ -70,8 +71,11 @@ class FeaturesQueryingTransformer(override val uid: String) extends QueryingTran
   
   override def transform(df: Dataset[_]): DataFrame = {
     import df.sparkSession.implicits._
+    
+    require(IndexFactory.isLocal($(indexRef)), 
+        "indexref must be for a local index - e.g. remote indices not yet supported")
 
-    System.out.println("Querying for "+ df.count() + " queries")
+    System.out.println("Querying "+$(indexRef).toString()+" for "+ df.count() + " queries with feaures")
     
     def getRes2(qid : String, query : String) : Iterable[(String, Int, Double, Int, Vector)] = {
       mapResultSetFR(getTerrier.apply((qid,query)).asInstanceOf[Request].getResultSet.asInstanceOf[FeaturedResultSet])
@@ -165,7 +169,7 @@ trait QueryingPipelineStage extends PipelineStage {
   def transform(df: Dataset[_]): DataFrame = {
     import df.sparkSession.implicits._
 
-    System.out.println("Querying for "+ df.count() + " queries")
+    System.out.println("Querying "+$(indexRef).toString()+" for "+ df.count() + " queries")
     
     def getRes2(qid : String, query : String) : Iterable[(String, Int, Double, Int)] = {
       Conversions.mapScoredDocList(getTerrier.apply((qid,query)).getResults, $(maxResults))
