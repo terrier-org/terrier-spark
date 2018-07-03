@@ -96,7 +96,7 @@
 		<dependency>
 			<groupId>org.terrier</groupId>
 			<artifactId>terrier-concurrent</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${terrier.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -175,8 +175,6 @@
 				</executions>
 				<configuration>
 					<excludes>
-						<exclude>**/org/terrier/spark/ml/WSDWeighting.scala</exclude>
-						<exclude>**/org/apache/spark/ml/source/libsvm/*.scala</exclude>
 					</excludes>
 					<scalaVersion>${scala.version}</scalaVersion>
 					<recompileMode>incremental</recompileMode>
