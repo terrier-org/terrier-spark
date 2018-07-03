@@ -55,7 +55,7 @@ For known improvements/issues, see [TODO.md](TODO.md)
 Firstly, make sure you have a working installation of Toree. Next, import Terrier and terrier-spark using some `%AddDeps` "magic":
 
 	%AddDeps org.terrier terrier-core 5.0 --transitive --exclude org.slf4j:slf4j-log4j12  
-	%AddDeps org.terrier terrier-spark 0.0.1-SNAPSHOT --repository file:/home/user/.m2/repository --transitivea
+	%AddDeps org.terrier terrier-spark 0.0.1-SNAPSHOT --repository file:/home/user/.m2/repository --transitive
 
 You can then use the terrier-spark code directly in your Scala notebooks.
 
