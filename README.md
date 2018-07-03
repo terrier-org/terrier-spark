@@ -47,12 +47,17 @@ For known improvements/issues, see [TODO.md](TODO.md)
 
 ## Use from the Spark Shell
 
-	$ spark-shell --packages org.terrier:terrier-spark:0.0.1
+	$ spark-shell --packages org.terrier:terrier-spark:0.0.1-SNAPSHOT
 
 
 ## Use within a Jupyter Notebook
 
-Firstly, make sure you have a working installation of Toree.
+Firstly, make sure you have a working installation of Toree. Next, import Terrier and terrier-spark using some `%AddDeps` "magic":
+
+	%AddDeps org.terrier terrier-core 5.0 --transitive --exclude org.slf4j:slf4j-log4j12  
+	%AddDeps org.terrier terrier-spark 0.0.1-SNAPSHOT --repository file:/home/user/.m2/repository --transitivea
+
+You can then use the terrier-spark code directly in your Scala notebooks.
 
 We have provided several example notebooks:
  - Performing a simple run: [example_notebooks/toree/simple_run.ipynb](example_notebooks/toree/simple_run.ipynb)
