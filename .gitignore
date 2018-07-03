@@ -2,3 +2,5 @@
 .cache-tests
 classes/
 target/
+*.class
+*.log
