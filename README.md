@@ -44,6 +44,7 @@ For known improvements/issues, see [TODO.md](TODO.md)
     //r2 is a dataframe as r1, but also includes a label column
     val ndcg = new RankingEvaluator(Measure.NDCG, 20).evaluateByQuery(r2).toList
 
+More examples are provided in the [example notebooks](example_notebooks/toree/), or in our [SIGIR 2018 demo paper](http://www.dcs.gla.ac.uk/~craigm/publications/macdonald2018terriersparkdemo.pdf) [1].
 
 ## Use from the Spark Shell
 
