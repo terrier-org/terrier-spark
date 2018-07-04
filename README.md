@@ -68,9 +68,9 @@ We have provided several example notebooks:
 
 If you use this software, please cite one of:
 
-1. Combining Terrier with Apache Spark to create agile experimental information retrieval pipelines. Craig Macdonald. In Proceedings of SIGIR 2018.
+1. [Combining Terrier with Apache Spark to create agile experimental information retrieval pipelines. Craig Macdonald. In Proceedings of SIGIR 2018.](http://www.dcs.gla.ac.uk/~craigm/publications/macdonald2018terriersparkdemo.pdf)
 
-2. Agile Information Retrieval Experimentation with Terrier Notebooks. Craig Macdonald, Richard McCreadie, Iadh Ounis. In Proceedings of DESIRES 2018.
+2. Agile Information Retrieval Experimentation with Terrier Notebooks. Craig Macdonald, Richard McCreadie, Iadh Ounis. In Proceedings of DESIRES 2018. In press.
 
 ## Credits
 
