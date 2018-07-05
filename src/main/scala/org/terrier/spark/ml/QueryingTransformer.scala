@@ -109,6 +109,8 @@ class QueryingTransformer(override val uid: String) extends Transformer with Que
 
 trait QueryingPipelineStage extends PipelineStage {
   
+  final val matchopQL = new Param[Boolean](this, "matchopQL", "defines if the queries are formatted as matchopql")
+  final val controls = new Param[Map[String,String]](this, "controls", "controls to be set for each query")
   final val indexRef = new Param[IndexRef](this, "index", "The reference to the index to be queried")
   final val inputQueryCol= new Param[String](this, "inputQueryCol", "The input column containing the queries")
   final val inputQueryNumCol= new Param[String](this, "inputQueryNumCol", "The input column containing the queries")
@@ -117,6 +119,8 @@ trait QueryingPipelineStage extends PipelineStage {
   //TODO this should perhaps be sent through as a property/control for Terrier
   final val maxResults = new Param[Int](this, "maxResults", "Max number of results for QueryingTransformer to render for each query")
 
+  setDefault(matchopQL, false)
+  setDefault(controls -> Map())
   setDefault(localTerrierProperties -> Map())
   setDefault(sampleModel -> "InL2")
   setDefault(maxResults -> 1000)
@@ -131,7 +135,15 @@ trait QueryingPipelineStage extends PipelineStage {
       terrier = Some( new TerrierQueryMapClient($(indexRef), getTerrierProperties ))
     }
     val rtr = terrier.get
-    rtr.wmodel = $(sampleModel)
+    	rtr.wmodel = $(sampleModel)
+    	rtr.controls = $(controls) ++ (if ($(matchopQL)) 
+        Map(
+        "parsecontrols" -> "off",
+        "parseql" -> "off",
+        "terrierql" -> "off",
+        "matchopql" -> "on")
+      else
+        Map())
     rtr
   }
   
@@ -139,6 +151,8 @@ trait QueryingPipelineStage extends PipelineStage {
    get(localTerrierProperties).get 
   }
   
+  def setMatchOpQL(use : Boolean): this.type = set(matchopQL, use)
+  def setControls(KVs : Map[String,String]): this.type = set(controls, KVs)
   def setIndexReference(value : IndexRef): this.type = set(indexRef, value)
   def setInputQueryCol(value: String): this.type = set(inputQueryCol, value)
   def setInputQueryNumCol(value: String): this.type = set(inputQueryNumCol, value)
@@ -172,7 +186,7 @@ trait QueryingPipelineStage extends PipelineStage {
   def transform(df: Dataset[_]): DataFrame = {
     import df.sparkSession.implicits._
 
-    System.out.println("Querying "+$(indexRef).toString()+" for "+ df.count() + " queries")
+    println("Querying "+$(indexRef).toString()+" for "+ df.count() + " queries")
     
     def getRes2(qid : String, query : String) : Iterable[(String, Int, Double, Int)] = {
       Conversions.mapScoredDocList(getTerrier.apply((qid,query)).getResults, $(maxResults))
