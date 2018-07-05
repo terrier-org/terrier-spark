@@ -34,6 +34,7 @@ class TerrierQueryMapClient(indexref : IndexRef, props : Map[String,String]) ext
   
   var matching = "org.terrier.matching.daat.Full"
   var wmodel = "InL2"
+  var controls = Map[String,String]()
   
   def getManager() = {
     val jprops : Properties  = new Properties();
@@ -87,12 +88,16 @@ class TerrierQueryMapClient(indexref : IndexRef, props : Map[String,String]) ext
     val qid = input._1
     val query = input._2
     val srq = manager.newSearchRequest(qid, query)
+    
+    for ((k,v) <- controls)
+      srq.setControl(k,v)
     //c is a special case, as its defined by a control, not a property.
     if (props.contains("c"))
     {
         srq.setControl("c", props.get("c").get)
         srq.setControl("c_set", "true")
     }
+    
     srq.setControl(SearchRequest.CONTROL_MATCHING, ApplicationSetup.getProperty("trec.matching", matching))
     srq.setControl(SearchRequest.CONTROL_WMODEL, ApplicationSetup.getProperty("trec.model", wmodel))
     manager.runSearchRequest(srq)
