@@ -8,7 +8,7 @@ import org.terrier.learning.FeaturedResultSet
 import org.terrier.matching.ResultSet
 import org.terrier.querying.ScoredDocList
 
-
+/** utility methods for converting Terrier classes into primitive iterators */
 object Conversions {
   
   def mapScoredDocList(res : ScoredDocList, maxResults : Int) : Iterable[(String, Int, Double, Int)] =

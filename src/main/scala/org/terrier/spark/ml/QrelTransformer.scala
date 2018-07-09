@@ -12,11 +12,14 @@ import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.ml.PipelineStage
 
+/** trait for PipelineStages that need to access the qrels file */
 trait NeedQrels extends PipelineStage {
   final val qrelsFile = new Param[String](this, "qrelsFile", "The location of the qrels file")
   def setQrelsFile(value: String): this.type = set(qrelsFile, value)
 }
 
+/** this Transformer adds notice of the relevant documents to the dataset
+ */
 class QrelTransformer(override val uid: String) extends Transformer with NeedQrels with LabelStageTrait {
   
   def this() = {

@@ -30,7 +30,10 @@ class PropertyModel(
   }
   
 }
-  
+
+/** An estimator that can be placed in a pipeline to vary 
+ *  properties, in order to optimise them
+ */
 class ArbitraryParameterTrainingEstimator(override val uid: String)
   extends Estimator[PropertyModel]
   with QueryingPipelineStage with NeedQrels

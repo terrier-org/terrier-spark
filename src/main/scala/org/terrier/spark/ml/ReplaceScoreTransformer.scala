@@ -9,6 +9,7 @@ import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.ml.util.Identifiable
 
+/** A simple transformer that replaces the score column with the newscore column */
 class ReplaceScoreTransformer(override val uid: String)
     extends Transformer {
   

@@ -4,6 +4,8 @@ import org.apache.spark.ml.PipelineStage
 import org.apache.spark.ml.param.Param
 import org.apache.spark.ml.param.Params
 
+/** trait for those that need to access the labels
+ */
 trait LabelStageTrait extends Params {
   val uid: String = "LabelStageTrait"
   

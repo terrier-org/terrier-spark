@@ -22,6 +22,10 @@ object Measure extends Enumeration {
 
 class NDCGEvaluator(cutoff : Int) extends RankingEvaluator(Measure.NDCG, cutoff : Int)
 
+/** An evaluator for multiple measures and cutoffs.
+ *  NB: This may give incorrect results for recall-based measure such as MAP,
+ *  as QrelTransformer does not provide the labels for documents not retrieved.
+ */
 class RankingEvaluator(m : Measure.Value, cutoff : Int) extends Evaluator
 {
     def this(c : Int) = {

@@ -5,6 +5,7 @@ import org.terrier.applications.batchquerying.QuerySource
 import org.terrier.applications.batchquerying.TRECQuery
 import org.terrier.applications.batchquerying.SingleLineTRECQuery
 
+/** this object is useful for extracting topics from files */
 object TopicSource {
   def configureTerrier(props : scala.collection.Map[String,String]) = {
     //force terrier init now

@@ -27,6 +27,7 @@ import org.terrier.querying.IndexRef
 import org.terrier.querying.Request
 import org.terrier.structures.IndexFactory
 
+/** A QueryingTransformer that calculates and returns multiple features per document */
 class FeaturesQueryingTransformer(override val uid: String) extends QueryingTransformer(uid)
 {
   final val retrievalFeatures = new Param[Seq[String]](this, "retrievalFeatures", "The names of features to use")
@@ -75,8 +76,8 @@ class FeaturesQueryingTransformer(override val uid: String) extends QueryingTran
     require(IndexFactory.isLocal($(indexRef)), 
         "indexref must be for a local index - e.g. remote indices not yet supported")
 
-    val queryCount =  df.count()
-    println("Querying "+$(indexRef).toString()+" for "+ queryCount + " queries with feaures")
+    if (verbose)
+    	println("Querying "+$(indexRef).toString()+" for "+  df.count() + " queries with feaures")
     
     def getRes2(qid : String, query : String) : Iterable[(String, Int, Double, Int, Vector)] = {
       mapResultSetFR(getTerrier.apply((qid,query)).asInstanceOf[Request].getResultSet.asInstanceOf[FeaturedResultSet])
@@ -91,11 +92,18 @@ class FeaturesQueryingTransformer(override val uid: String) extends QueryingTran
     val rtr = df.join(resDF, $(inputQueryNumCol))
     val featureCount = rtr.head().getAs("features").asInstanceOf[Vector].size
     val resultCount = rtr.count()
-    println("Got for "+ resultCount + " results total for " + queryCount +" queries and " + featureCount + " features")
+    if (verbose)
+      println("Got for "+ resultCount + " results total for " + df.count() +" queries and " + featureCount + " features")
     rtr
   }
 }
 
+/** this Transformer takes the queries (and query ids) and sends them to a Terrier instance.
+ *  The resulting Dataset has the retrieved documents for each query, along with their scores.
+ *  Different parameters can be set, including the maximum number of results to retrieve, the
+ *  default weighting model to retrieve them, the query language in use, the underlying index
+ *  references, etc.
+ */
 class QueryingTransformer(override val uid: String) extends Transformer with QueryingPipelineStage {
 
   def this() = {
@@ -107,7 +115,11 @@ class QueryingTransformer(override val uid: String) extends Transformer with Que
   }
 }
 
+/** a trait implementing the core functionality of QueryingTransformer 
+ */
 trait QueryingPipelineStage extends PipelineStage {
+  
+  val verbose = true;
   
   final val matchopQL = new Param[Boolean](this, "matchopQL", "defines if the queries are formatted as matchopql")
   final val controls = new Param[Map[String,String]](this, "controls", "controls to be set for each query")
@@ -186,7 +198,8 @@ trait QueryingPipelineStage extends PipelineStage {
   def transform(df: Dataset[_]): DataFrame = {
     import df.sparkSession.implicits._
 
-    println("Querying "+$(indexRef).toString()+" for "+ df.count() + " queries")
+    if (verbose)
+      println("Querying "+$(indexRef).toString()+" for "+ df.count() + " queries")
     
     def getRes2(qid : String, query : String) : Iterable[(String, Int, Double, Int)] = {
       Conversions.mapScoredDocList(getTerrier.apply((qid,query)).getResults, $(maxResults))
@@ -200,7 +213,8 @@ trait QueryingPipelineStage extends PipelineStage {
     }.toDF($(inputQueryNumCol), "docno", "docid", "score", "rank")
     
     val rtr = df.join(resDF, $(inputQueryNumCol))
-    System.out.println("Got for "+ rtr.count() + " results total")
+    if (verbose)
+      println("Got for "+ rtr.count() + " results total")
     rtr
   }
 
